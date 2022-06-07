@@ -20,19 +20,13 @@ class MyHomePage extends StatelessWidget {
   final items = List<String>.generate(20, (i) => "Item ${i + 1}");
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 300,
-        height: 400,
-        child: StackedList(
-          itemCount: items.length,
-          itemExtent: 5,
-          itemBuilder: (context, index) => Center(
-            child: Text(
-              items[index],
-              style: TextStyle(fontSize: 24, color: Colors.black),
-            ),
-          ),
+    return StackedList(
+      itemCount: items.length,
+      itemExtent: 5,
+      itemBuilder: (context, index) => Center(
+        child: Text(
+          items[index],
+          style: TextStyle(fontSize: 24, color: Colors.black),
         ),
       ),
     );
@@ -79,13 +73,15 @@ class _StackedListState extends State<StackedList> {
         _StackedListItem(
           factor: factor,
           colorTween: _colorTween,
-          widget: widget,
+          child: widget,
           index: index,
           swipeEnabled: index == widget.itemExtent - 1,
         ),
       );
     }
-    return Stack(clipBehavior: Clip.none, children: children);
+    return Container(
+        color: Colors.red,
+        child: Stack(clipBehavior: Clip.none, children: children));
   }
 }
 
@@ -94,7 +90,7 @@ class _StackedListItem extends StatefulWidget {
       {Key? key,
       required this.factor,
       required ColorTween colorTween,
-      required this.widget,
+      required this.child,
       required this.index,
       this.swipeEnabled = false})
       : _colorTween = colorTween,
@@ -102,7 +98,7 @@ class _StackedListItem extends StatefulWidget {
 
   final int factor;
   final ColorTween _colorTween;
-  final StackedList widget;
+  final StackedList child;
   final int index;
   final bool swipeEnabled;
 
@@ -111,44 +107,59 @@ class _StackedListItem extends StatefulWidget {
 }
 
 class _StackedListItemState extends State<_StackedListItem> {
-  double _verticalOffset = 0;
+  late Alignment _alignment;
+  late double verticalDrag;
+  @override
+  void initState() {
+    verticalDrag = -widget.factor * 0.1;
+    _alignment = Alignment(0, -widget.factor * 0.1);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Transform(
-      alignment: Alignment.bottomCenter,
-      transform: Matrix4.identity()
-        ..translate(
-            0.0,
-            (widget.factor * -70 + (widget.factor * widget.factor * 2)) +
-                _verticalOffset)
-        ..scale(1 - (0.085 * widget.factor)),
-      child: GestureDetector(
-        onVerticalDragUpdate: widget.swipeEnabled
-            ? (details) => _handleDragUpdate(details)
-            : null,
-        child: Container(
-            decoration: BoxDecoration(
-              color: widget._colorTween
-                  .transform(1 - (1 - (0.15 * widget.factor))),
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  offset: Offset(0, -5),
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: widget.widget.itemBuilder(context, widget.index)),
+    Size size = MediaQuery.of(context).size;
+    return GestureDetector(
+      onVerticalDragUpdate: widget.swipeEnabled
+          ? (details) {
+              verticalDrag += details.delta.dy;
+              print("Delta: ${details.delta.dy}");
+              print("Vertical Drag: $verticalDrag");
+              print("Distance: ${details.primaryDelta}");
+              print("movement: ${verticalDrag / size.height}");
+              print("Screen height: ${size.height}");
+              print("real distance: ${verticalDrag / (size.height - 400) * 2}");
+              setState(() {
+                _alignment = Alignment(
+                  0,
+                  verticalDrag / (size.height - 400) * 2,
+                );
+              });
+            }
+          : null,
+      child: Transform(
+        alignment: Alignment.bottomCenter,
+        transform: Matrix4.identity()..scale(1 - (0.085 * widget.factor), 1),
+        child: Align(
+          alignment: _alignment,
+          child: Container(
+              width: 300,
+              height: 400,
+              decoration: BoxDecoration(
+                color: widget._colorTween
+                    .transform(1 - (1 - (0.15 * widget.factor))),
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    offset: Offset(0, -5),
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+              child: widget.child.itemBuilder(context, widget.index)),
+        ),
       ),
     );
-  }
-
-  _handleDragUpdate(DragUpdateDetails details) {
-    print("${widget.index}: ${details.delta.dy}");
-    setState(() {
-      _verticalOffset += details.delta.dy;
-    });
   }
 }
