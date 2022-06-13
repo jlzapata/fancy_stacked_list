@@ -73,9 +73,13 @@ class _StackedListState extends State<StackedList> {
         _StackedListItem(
           factor: factor,
           colorTween: _colorTween,
-          child: widget,
           index: index,
           swipeEnabled: index == widget.itemExtent - 1,
+          height: 400,
+          onDrag: (distance) {
+            print(distance);
+          },
+          child: widget,
         ),
       );
     }
@@ -89,18 +93,21 @@ class _StackedListItem extends StatefulWidget {
   const _StackedListItem(
       {Key? key,
       required this.factor,
-      required ColorTween colorTween,
+      required this.colorTween,
       required this.child,
       required this.index,
+      required this.height,
+      this.onDrag,
       this.swipeEnabled = false})
-      : _colorTween = colorTween,
-        super(key: key);
+      : super(key: key);
 
   final int factor;
-  final ColorTween _colorTween;
+  final ColorTween colorTween;
   final StackedList child;
   final int index;
   final bool swipeEnabled;
+  final double height;
+  final OnDragCallback? onDrag;
 
   @override
   State<_StackedListItem> createState() => _StackedListItemState();
@@ -109,11 +116,16 @@ class _StackedListItem extends StatefulWidget {
 class _StackedListItemState extends State<_StackedListItem> {
   late Alignment _alignment;
   late double verticalDrag;
+
   @override
   void initState() {
     verticalDrag = -widget.factor * 0.1;
     _alignment = Alignment(0, -widget.factor * 0.1);
     super.initState();
+  }
+
+  double getChildOffset(int i) {
+    return 100 - (((10 + (10 * i)) / 2) * i);
   }
 
   @override
@@ -123,18 +135,23 @@ class _StackedListItemState extends State<_StackedListItem> {
       onVerticalDragUpdate: widget.swipeEnabled
           ? (details) {
               verticalDrag += details.delta.dy;
+              double dragDistance =
+                  verticalDrag / (size.height - widget.height) * 2;
               print("Delta: ${details.delta.dy}");
               print("Vertical Drag: $verticalDrag");
               print("Distance: ${details.primaryDelta}");
               print("movement: ${verticalDrag / size.height}");
               print("Screen height: ${size.height}");
-              print("real distance: ${verticalDrag / (size.height - 400) * 2}");
+              print(
+                  "real distance: ${verticalDrag / (size.height - widget.height) * 2}");
               setState(() {
                 _alignment = Alignment(
                   0,
-                  verticalDrag / (size.height - 400) * 2,
+                  verticalDrag / (size.height - widget.height) * 2,
                 );
               });
+
+              widget.onDrag?.call(dragDistance);
             }
           : null,
       child: Transform(
@@ -144,15 +161,15 @@ class _StackedListItemState extends State<_StackedListItem> {
           alignment: _alignment,
           child: Container(
               width: 300,
-              height: 400,
+              height: widget.height,
               decoration: BoxDecoration(
-                color: widget._colorTween
+                color: widget.colorTween
                     .transform(1 - (1 - (0.15 * widget.factor))),
                 borderRadius: BorderRadius.circular(40),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
-                    offset: Offset(0, -5),
+                    offset: const Offset(0, -5),
                     blurRadius: 5,
                   ),
                 ],
@@ -163,3 +180,5 @@ class _StackedListItemState extends State<_StackedListItem> {
     );
   }
 }
+
+typedef OnDragCallback = void Function(double);

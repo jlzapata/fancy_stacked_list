@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stacked_list/stacked_app.dart';
+import 'package:stacked_list/stacked_flow.dart';
 
 import 'draggable.dart';
 
@@ -7,21 +8,27 @@ void main() {
   runApp(StackedApp());
 }
 
-// class MyApp extends StatelessWidget {
-//   const MyApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
-//   // This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//         title: 'Flutter Demo',
-//         debugShowCheckedModeBanner: false,
-//         theme: ThemeData(
-//           scaffoldBackgroundColor: Colors.black,
-//         ),
-//         home: MyHomePage());
-//   }
-// }
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.black,
+        ),
+        home: Scaffold(
+            body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: StackedFlow(
+            childHeight: 400,
+          ),
+        )));
+  }
+}
 
 // class MyHomePage extends StatelessWidget {
 //   MyHomePage({Key? key}) : super(key: key);
