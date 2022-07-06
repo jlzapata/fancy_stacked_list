@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:stacked_list/stacked_app.dart';
-import 'package:stacked_list/stacked_flow.dart';
-
-import 'draggable.dart';
 
 void main() {
-  runApp(StackedApp());
+  timeDilation = 6;
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,18 +14,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          scaffoldBackgroundColor: Colors.black,
-        ),
-        home: Scaffold(
-            body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: StackedFlow(
-            childHeight: 400,
-          ),
-        )));
+      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      home: Scaffold(body: StackedPage()),
+    );
   }
 }
 
